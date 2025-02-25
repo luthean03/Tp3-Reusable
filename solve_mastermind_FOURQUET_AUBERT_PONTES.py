@@ -10,8 +10,6 @@ Template for exercise 1
 import mastermind as mm
 import random
 
-MATCH = mm.MastermindMatch(secret_size=4)
-
 class Individual:
     """Represents an Individual for a genetic algorithm"""
 
@@ -83,7 +81,7 @@ class GASolver:
             new_chrom = a.chromosome[0:x_point] + b.chromosome[x_point:]
 
             if random.random() < self._mutation_rate:
-                valid_colors = mm.getPossibleColors()
+                valid_colors = mm.get_possible_colors()
                 new_gene = random.choice(valid_colors)
                 pos = random.randrange(0, len(new_chrom))
                 new_chrom[pos] = new_gene
@@ -97,7 +95,8 @@ class GASolver:
 
     def get_best_individual(self):
         """ Return the best Individual of the population """
-        pass  # REPLACE WITH YOUR CODE
+        self._population.sort(reverse=True)
+        return self._population[0]
 
     def evolve_until(self, max_nb_of_generations=500, threshold_fitness=None):
         """ Launch the evolve_for_one_generation function until one of the two condition is achieved : 
@@ -105,5 +104,18 @@ class GASolver:
             - The fitness of the best Individual is greater than or equal to
               threshold_fitness
         """
-        pass  # REPLACE WITH YOUR CODE
+        for i in range(max_nb_of_generations):
+            self.evolve_for_one_generation()
+            best = self.get_best_individual()
+            fitness = MATCH.rate_guess(best)
+            if fitness >= threshold_fitness:
+                return best
+        return self.get_best_individual()
 
+MATCH = mm.MastermindMatch(secret_size=4)
+solver = GASolver()
+solver.reset_population()
+solver.evolve_until(threshold_fitness=MATCH.max_score())
+best = solver.get_best_individual()
+print(f"Best guess {best.chromosome}")
+print(f"Problem solved? {MATCH.is_correct(best.chromosome)}")
