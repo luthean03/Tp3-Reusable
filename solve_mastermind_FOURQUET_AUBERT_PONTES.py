@@ -107,7 +107,7 @@ class GASolver:
         for i in range(max_nb_of_generations):
             self.evolve_for_one_generation()
             best = self.get_best_individual()
-            fitness = MATCH.rate_guess(best)
+            fitness = best.fitness
             if fitness >= threshold_fitness:
                 return best
         return self.get_best_individual()
