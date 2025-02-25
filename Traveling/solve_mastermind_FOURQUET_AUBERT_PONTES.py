@@ -7,7 +7,7 @@ Created on Mon Feb 21 11:24:15 2022
 Template for exercise 1
 (genetic algorithm module specification)
 """
-import mastermind as mm
+import cities 
 import random
 
 class Individual:
@@ -46,9 +46,10 @@ class GASolver:
 
     def reset_population(self, pop_size=50):
         """ Initialize the population with pop_size random Individuals """
+        chromosome = cities.default_road(city_dict)
         for i in range(pop_size):
-            chromosome = MATCH.generate_random_guess()
-            fitness = MATCH.rate_guess(chromosome)
+            random.shuffle(chromosome)
+            fitness = - cities.road_length(city_dict, chromosome)
             new_individual = Individual(chromosome, fitness)
             self._population.append(new_individual)
     
@@ -78,15 +79,13 @@ class GASolver:
                     break
 
             x_point = random.randrange(0, len(a.chromosome))        
-            new_chrom = a.chromosome[0:x_point] + b.chromosome[x_point:]
+            new_chrom = a.chromosome[0:x_point] + [gene for gene in b.chromosome if gene not in a.chromosome[0:x_point]]
 
             if random.random() < self._mutation_rate:
-                valid_colors = mm.get_possible_colors()
-                new_gene = random.choice(valid_colors)
-                pos = random.randrange(0, len(new_chrom))
-                new_chrom[pos] = new_gene
+                idx1, idx2 = random.sample(range(len(new_chrom)), 2)
+                new_chrom[idx1], new_chrom[idx2] = new_chrom[idx2], new_chrom[idx1]
 
-            new_individual = Individual(new_chrom, MATCH.rate_guess(new_chrom))
+            new_individual = Individual(new_chrom, - cities.road_length(city_dict, new_chrom))
             self._population.append(new_individual)        
 
     def show_generation_summary(self):
@@ -108,14 +107,13 @@ class GASolver:
             self.evolve_for_one_generation()
             best = self.get_best_individual()
             fitness = best.fitness
-            if fitness >= threshold_fitness:
+            if threshold_fitness is not None and fitness >= threshold_fitness:
                 return best
         return self.get_best_individual()
 
-MATCH = mm.MastermindMatch(secret_size=4)
+city_dict = cities.load_cities("Traveling/cities.txt")
 solver = GASolver()
 solver.reset_population()
-solver.evolve_until(threshold_fitness=MATCH.max_score())
+solver.evolve_until()
 best = solver.get_best_individual()
-print(f"Best guess {best.chromosome}")
-print(f"Problem solved? {MATCH.is_correct(best.chromosome)}")
+cities.draw_cities(city_dict, best.chromosome)
