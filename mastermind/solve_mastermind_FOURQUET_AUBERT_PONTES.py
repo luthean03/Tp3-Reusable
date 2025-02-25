@@ -47,9 +47,16 @@ class GASolver:
     def reset_population(self, pop_size=50):
         """ Initialize the population with pop_size random Individuals """
         for i in range(pop_size):
+            # Generate a random chromosome for a new individual
             chromosome = MATCH.generate_random_guess()
+            
+            # Evaluate the fitness of the generated chromosome
             fitness = MATCH.rate_guess(chromosome)
+            
+            # Create a new individual with the generated chromosome and its fitness
             new_individual = Individual(chromosome, fitness)
+            
+            # Add the new individual to the population
             self._population.append(new_individual)
     
     
@@ -64,30 +71,40 @@ class GASolver:
                 mutation_rate
         """
         self._population.sort(reverse=True)
+        # Calculate the size of the selection based on the selection rate
         selection_size = int(len(self._population) * self._selection_rate)
+        # Calculate the number of individuals to be removed
         removed_selection_size = len(self._population) - selection_size
+        # Keep only the top selection_size individuals
         self._population = self._population[:selection_size]
+        # Initialize a set to keep track of used pairs
         used_pairs = set()
 
         for i in range(removed_selection_size):
             while True:
+                # Randomly select two parents from the population
                 a = self._population[random.randrange(0, len(self._population))]
                 b = self._population[random.randrange(0, len(self._population))]
+                # Ensure the pair (a, b) has not been used before
                 if (a, b) not in used_pairs:
                     used_pairs.add((a, b))
                     break
 
+            # Perform crossover at a random point
             x_point = random.randrange(0, len(a.chromosome))        
             new_chrom = a.chromosome[0:x_point] + b.chromosome[x_point:]
 
+            # Apply mutation with a certain probability
             if random.random() < self._mutation_rate:
                 valid_colors = mm.get_possible_colors()
                 new_gene = random.choice(valid_colors)
                 pos = random.randrange(0, len(new_chrom))
                 new_chrom[pos] = new_gene
 
+            # Create a new individual with the new chromosome and its fitness
             new_individual = Individual(new_chrom, MATCH.rate_guess(new_chrom))
-            self._population.append(new_individual)        
+            # Add the new individual to the population
+            self._population.append(new_individual)    
 
     def show_generation_summary(self):
         """ Print some debug information on the current state of the population """
@@ -105,11 +122,16 @@ class GASolver:
               threshold_fitness
         """
         for i in range(max_nb_of_generations):
+            # Evolve the population for one generation
             self.evolve_for_one_generation()
+            # Get the best individual in the current population
             best = self.get_best_individual()
+            # Get the fitness of the best individual
             fitness = best.fitness
+            # Check if the fitness meets or exceeds the threshold
             if fitness >= threshold_fitness:
                 return best
+        # Return the best individual after the maximum number of generations
         return self.get_best_individual()
 
 MATCH = mm.MastermindMatch(secret_size=4)
