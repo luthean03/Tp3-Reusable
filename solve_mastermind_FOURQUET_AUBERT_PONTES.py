@@ -7,7 +7,10 @@ Created on Mon Feb 21 11:24:15 2022
 Template for exercise 1
 (genetic algorithm module specification)
 """
+import mastermind as mm
+import random
 
+MATCH = mm.MastermindMatch(secret_size=4)
 
 class Individual:
     """Represents an Individual for a genetic algorithm"""
@@ -45,8 +48,13 @@ class GASolver:
 
     def reset_population(self, pop_size=50):
         """ Initialize the population with pop_size random Individuals """
-        pass  # REPLACE WITH YOUR CODE
-
+        for i in range(pop_size):
+            chromosome = MATCH.generate_random_guess()
+            fitness = MATCH.rate_guess(chromosome)
+            new_individual = Individual(chromosome, fitness)
+            self._population.append(new_individual)
+    
+    
     def evolve_for_one_generation(self):
         """ Apply the process for one generation : 
             -	Sort the population (Descending order)
@@ -57,7 +65,31 @@ class GASolver:
                 mutation_rate i.e., mutate it if a random value is below   
                 mutation_rate
         """
-        pass  # REPLACE WITH YOUR CODE
+        self._population.sort(reverse=True)
+        selection_size = int(len(self._population) * self._selection_rate)
+        removed_selection_size = len(self._population) - selection_size
+        self._population = self._population[:selection_size]
+        used_pairs = set()
+
+        for i in range(removed_selection_size):
+            while True:
+                a = self._population[random.randrange(0, len(self._population))]
+                b = self._population[random.randrange(0, len(self._population))]
+                if (a, b) not in used_pairs:
+                    used_pairs.add((a, b))
+                    break
+
+            x_point = random.randrange(0, len(a.chromosome))        
+            new_chrom = a.chromosome[0:x_point] + b.chromosome[x_point:]
+
+            if random.random() < self._mutation_rate:
+                valid_colors = mm.getPossibleColors()
+                new_gene = random.choice(valid_colors)
+                pos = random.randrange(0, len(new_chrom))
+                new_chrom[pos] = new_gene
+
+            new_individual = Individual(new_chrom, MATCH.rate_guess(new_chrom))
+            self._population.append(new_individual)        
 
     def show_generation_summary(self):
         """ Print some debug information on the current state of the population """
@@ -74,3 +106,4 @@ class GASolver:
               threshold_fitness
         """
         pass  # REPLACE WITH YOUR CODE
+
