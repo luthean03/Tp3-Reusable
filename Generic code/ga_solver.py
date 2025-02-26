@@ -7,9 +7,10 @@ Created on Thu Feb 18 2022
 Template file for your Exercise 3 submission 
 (generic genetic algorithm module)
 """
-import cities
-import mastermind as mm
+import tsp_problem
+import mastermind_problem
 import random
+import cities
 
 class Individual:
     """Represents an Individual for a genetic algorithm"""
@@ -162,14 +163,14 @@ class GASolver:
         return self.get_best_individual()
 
 city_dict = cities.load_cities("Traveling/cities.txt")
-solver = GASolver()
+solver = GASolver(tsp_problem)
 solver.reset_population()
 solver.evolve_until()
 best = solver.get_best_individual()
 cities.draw_cities(city_dict, best.chromosome)
 
 MATCH = mm.MastermindMatch(secret_size=4)
-solver = GASolver()
+solver = GASolver(mastermind_problem)
 solver.reset_population()
 solver.evolve_until(threshold_fitness=MATCH.max_score())
 best = solver.get_best_individual()
