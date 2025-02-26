@@ -113,7 +113,7 @@ class GASolver:
         self._population.sort(reverse=True)
         return self._population[0]
 
-    def evolve_until(self, max_nb_of_generations=500, threshold_fitness=None):
+    def evolve_until(self, max_nb_of_generations=10000, threshold_fitness=None):
         """ Launch the evolve_for_one_generation function until one of the two condition is achieved : 
             - Max nb of generation is achieved
             - The fitness of the best Individual is greater than or equal to
