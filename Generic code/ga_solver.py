@@ -11,6 +11,7 @@ import tsp_problem
 import mastermind_problem
 import random
 import cities
+import mastermind as mm
 
 class Individual:
     """Represents an Individual for a genetic algorithm"""
@@ -97,6 +98,8 @@ class GASolver:
 
     def reset_population(self, pop_size=50):
         """ Initialize the population with pop_size random Individuals """
+        from tsp_problem import TSPProblem
+        from mastermind_problem import MastermindProblem 
         self._population = self._problem.initialize_population(self._pop_size)
 
     def evolve_for_one_generation(self):
@@ -163,14 +166,14 @@ class GASolver:
         return self.get_best_individual()
 
 city_dict = cities.load_cities("Traveling/cities.txt")
-solver = GASolver(tsp_problem)
+solver = GASolver(tsp_problem.TSPProblem())
 solver.reset_population()
 solver.evolve_until()
 best = solver.get_best_individual()
 cities.draw_cities(city_dict, best.chromosome)
 
 MATCH = mm.MastermindMatch(secret_size=4)
-solver = GASolver(mastermind_problem)
+solver = GASolver(mastermind_problem.MastermindProblem())
 solver.reset_population()
 solver.evolve_until(threshold_fitness=MATCH.max_score())
 best = solver.get_best_individual()
