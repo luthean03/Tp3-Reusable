@@ -48,9 +48,13 @@ class GASolver:
         """ Initialize the population with pop_size random Individuals """
         chromosome = cities.default_road(city_dict)
         for i in range(pop_size):
+            # Generate a random chromosome for a new individual
             random.shuffle(chromosome)
+            # Evaluate the fitness of the generated chromosome
             fitness = - cities.road_length(city_dict, chromosome)
+            # Create a new individual with the generated chromosome and its fitness
             new_individual = Individual(chromosome, fitness)
+            # Add the new individual to the population
             self._population.append(new_individual)
     
     
@@ -64,28 +68,40 @@ class GASolver:
                 mutation_rate i.e., mutate it if a random value is below   
                 mutation_rate
         """
+        # Sort the population in descending order of fitness
         self._population.sort(reverse=True)
+        # Calculate the size of the selection based on the selection rate
         selection_size = int(len(self._population) * self._selection_rate)
+        # Calculate the number of individuals to be removed
         removed_selection_size = len(self._population) - selection_size
+        # Keep only the top selection_size individuals
         self._population = self._population[:selection_size]
+        # Initialize a set to keep track of used pairs
         used_pairs = set()
 
         for i in range(removed_selection_size):
             while True:
+                # Randomly select two parents from the population
                 a = self._population[random.randrange(0, len(self._population))]
                 b = self._population[random.randrange(0, len(self._population))]
+                # Ensure the pair (a, b) has not been used before
                 if (a, b) not in used_pairs:
                     used_pairs.add((a, b))
                     break
 
+            # Perform crossover at a random point            
             x_point = random.randrange(0, len(a.chromosome))        
             new_chrom = a.chromosome[0:x_point] + [gene for gene in b.chromosome if gene not in a.chromosome[0:x_point]]
 
+            # Apply mutation with a certain probability
             if random.random() < self._mutation_rate:
+                # Swap two genes in the chromosome
                 idx1, idx2 = random.sample(range(len(new_chrom)), 2)
                 new_chrom[idx1], new_chrom[idx2] = new_chrom[idx2], new_chrom[idx1]
 
+            # Create a new individual with the new chromosome and its fitness
             new_individual = Individual(new_chrom, - cities.road_length(city_dict, new_chrom))
+            # Add the new individual to the population
             self._population.append(new_individual)        
 
     def show_generation_summary(self):
@@ -104,9 +120,13 @@ class GASolver:
               threshold_fitness
         """
         for i in range(max_nb_of_generations):
+            # Evolve the population for one generation
             self.evolve_for_one_generation()
+            # Get the best individual in the current population
             best = self.get_best_individual()
+            # Get the fitness of the best individual
             fitness = best.fitness
+            # Check if the fitness meets or exceeds the threshold
             if threshold_fitness is not None and fitness >= threshold_fitness:
                 return best
         return self.get_best_individual()
