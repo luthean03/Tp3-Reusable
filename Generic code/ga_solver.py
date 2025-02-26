@@ -7,6 +7,7 @@ Created on Thu Feb 18 2022
 Template file for your Exercise 3 submission 
 (generic genetic algorithm module)
 """
+import random
 
 
 class Individual:
@@ -16,10 +17,8 @@ class Individual:
         """Initializes an Individual for a genetic algorithm
 
         Args:
-            chromosome (list[]): a list representing the individual's
-            chromosome
-            fitness (float): the individual's fitness (the higher the value,
-            the better the fitness)
+            chromosome (list[]): a list representing the individual's chromosome
+            fitness (float): the individual's fitness (the higher the value, the better the fitness)
         """
         self.chromosome = chromosome
         self.fitness = fitness
@@ -35,7 +34,22 @@ class Individual:
 
 class GAProblem:
     """Defines a Genetic algorithm problem to be solved by ga_solver"""
-    pass  # REPLACE WITH YOUR CODE
+
+    def generate_random_individual(self):
+        """Generates a random individual"""
+        raise NotImplementedError
+
+    def crossover(self, parent1, parent2):
+        """Performs crossover between two parents to produce a new chromosome"""
+        raise NotImplementedError
+
+    def mutate(self, chromosome):
+        """Mutates a given chromosome"""
+        raise NotImplementedError
+
+    def evaluate_fitness(self, chromosome):
+        """Evaluates the fitness of a given chromosome"""
+        raise NotImplementedError
 
 
 class GASolver:
@@ -53,33 +67,47 @@ class GASolver:
         self._population = []
 
     def reset_population(self, pop_size=50):
-        """ Initialize the population with pop_size random Individuals """
-        pass  # REPLACE WITH YOUR CODE
+        """Initialize the population with pop_size random Individuals"""
+        self._population = [
+            Individual(*self._problem.generate_random_individual())
+            for _ in range(pop_size)
+        ]
 
     def evolve_for_one_generation(self):
-        """ Apply the process for one generation : 
-            -	Sort the population (Descending order)
-            -	Selection: Remove x% of population (less adapted)
-            -   Reproduction: Recreate the same quantity by crossing the 
-                surviving ones 
-            -	Mutation: For each new Individual, mutate with probability 
-                mutation_rate i.e., mutate it if a random value is below   
-                mutation_rate
-        """
-        pass  # REPLACE WITH YOUR CODE
+        """Apply the process for one generation"""
+        self._population.sort(reverse=True)
+        selection_size = int(len(self._population) * self._selection_rate)
+        removed_selection_size = len(self._population) - selection_size
+        self._population = self._population[:selection_size]
+        used_pairs = set()
 
-    def show_generation_summary(self):
-        """ Print some debug information on the current state of the population """
-        pass  # REPLACE WITH YOUR CODE
+        for _ in range(removed_selection_size):
+            while True:
+                parent1 = self._population[random.randrange(0, len(self._population))]
+                parent2 = self._population[random.randrange(0, len(self._population))]
+                if (parent1, parent2) not in used_pairs:
+                    used_pairs.add((parent1, parent2))
+                    break
+            new_chrom = self._problem.crossover(parent1.chromosome, parent2.chromosome)
+            if random.random() < self._mutation_rate:
+                new_chrom = self._problem.mutate(new_chrom)
+            new_individual = Individual(new_chrom, self._problem.evaluate_fitness(new_chrom))
+            self._population.append(new_individual)
+
+    def show_generation_summary(self,generation):
+        """Print some debug information on the current state of the population"""
+        best_individual = self.get_best_individual()
+        print(f'Best Individual for generation {generation}: chromosome {best_individual.chromosome} fitness {best_individual.fitness}')
 
     def get_best_individual(self):
-        """ Return the best Individual of the population """
-        pass  # REPLACE WITH YOUR CODE
+        """Return the best Individual of the population"""
+        return max(self._population, key=lambda indiv: indiv.fitness)
 
     def evolve_until(self, max_nb_of_generations=500, threshold_fitness=None):
-        """ Launch the evolve_for_one_generation function until one of the two condition is achieved : 
-            - Max nb of generation is achieved
-            - The fitness of the best Individual is greater than or equal to
-              threshold_fitness
-        """
-        pass  # REPLACE WITH YOUR CODE
+        """Launch the evolve_for_one_generation function until one of the two conditions is achieved"""
+        for generation in range(max_nb_of_generations):
+            self.evolve_for_one_generation()
+            self.show_generation_summary(generation)
+            best_individual = self.get_best_individual()
+            if threshold_fitness is not None and best_individual.fitness >= threshold_fitness:
+                break
